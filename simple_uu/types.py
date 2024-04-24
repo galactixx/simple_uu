@@ -1,4 +1,7 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Union
+from os import PathLike
 
 from textwrap import dedent
 
@@ -7,11 +10,11 @@ class UUDecodedFile:
     file_name: str
     permissions_mode: str
     end_footer_included: bool
-
     file_mime_type: str
     file_extension: str
     
-    __bytearray: bytearray = field(default=bytearray)
+    def __post_init__(self) -> None:
+        self.__bytearray: bytearray = bytearray()
 
     def __str__(self) -> str:
         return repr(self)
@@ -25,14 +28,32 @@ class UUDecodedFile:
             f'file_extension={self.file_extension})'
         )
         return dedent(text=class_repr)
+    
+    @property
+    def full_filename(self) -> str:
+        return f'{self.file_name}.{self.file_extension}'
 
     @property
     def uu_decoded_bytes(self) -> bytes:
         return bytes(self.__bytearray)
-    
-    def _set_uu_bytearray(self, decoded_bytes: bytes) -> None:
+
+    @uu_decoded_bytes.setter
+    def uu_decoded_bytes(self, decoded_bytes: bytearray) -> None:
         self.__bytearray = decoded_bytes
+
+    def write_file(self, path: Union[str, Path, PathLike]) -> None:
+        if isinstance(path, str):
+            path = Path(path)
+      
+        if not path.exists() or not path.is_dir():
+            raise NotADirectoryError("not a valid path for writing file")
+
+        # Add filename to compiled filename
+        path /= self.full_filename
         
+        # Write bytes to specified path
+        path.write_bytes(self.uu_decoded_bytes)
+
 
 @dataclass
 class UUEncodedFile:

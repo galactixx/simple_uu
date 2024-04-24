@@ -6,9 +6,16 @@ import os
 import charset_normalizer
 import filetype
 
-from simple_uu.exceptions import InvalidUUEncodedFileError
 from simple_uu.types import UUDecodedFile
-from simple_uu.utils import decompose_file_name
+from simple_uu.utils import (
+    construct_filename,
+    decompose_file_name,
+    parse_header
+)
+from simple_uu.exceptions import (
+    FileExtensionNotFoundError,
+    InvalidUUEncodedFileError
+)
 
 def _from_charset_normalizer(content: bytes) -> Generator[bytes, None, None]:
     """
@@ -16,6 +23,8 @@ def _from_charset_normalizer(content: bytes) -> Generator[bytes, None, None]:
     uu_encoded_content = charset_normalizer.from_bytes(content)
     encoding = uu_encoded_content.best()
 
+    # charset_normalizer will classify the uuencoded ascii text as utf_8, so
+    # check for both ascii and utf_8 encoding output
     if encoding.encoding not in {'ascii', 'utf_8'}:
         raise InvalidUUEncodedFileError(
             "invalid uu encode file format, file does not have an ascii encoding"
@@ -25,15 +34,15 @@ def _from_charset_normalizer(content: bytes) -> Generator[bytes, None, None]:
         yield line
 
 
-def decode(file_object: Union[bytes, bytearray, str]) -> UUDecodedFile:
+def decode(file_object: Union[str, bytes, bytearray]) -> UUDecodedFile:
     """
     """
     binary_data = bytearray()
     end_footer_included = False
     
-    # If a str is passed in, then this is expected to be an existing file path
+    # if a str is passed in, then this is expected to be an existing file path
     if isinstance(file_object, str):
-        if os.path.exists(file_object):
+        if os.path.exists(file_object) and os.path.isfile(file_object):
             with open(file_object, 'rb') as uu_encoded_file:
                 uu_encoded_bytes: bytes = uu_encoded_file.read()
         else:
@@ -49,14 +58,14 @@ def decode(file_object: Union[bytes, bytearray, str]) -> UUDecodedFile:
 
     uu_encoded_content = _from_charset_normalizer(content=uu_encoded_bytes)
 
-    # Skip any excess white space before the header, if there are issues
+    # skip any excess white space before the header, if there are issues
     while uu_encoded_content:
-        header_line: bytes = next(uu_encoded_content)
+        header_line: bytes = next(uu_encoded_content).rstrip(b'\n\r')
 
-        if not header_line.startswith(b'\n'):
+        if header_line.startswith(b'\n') or header_line:
             break
 
-    begin, permissions_mode, file_name = header_line.split(b' ')
+    begin, permissions_mode, file_name = parse_header(header=header_line)
     
     if begin != b'begin':
         raise InvalidUUEncodedFileError(
@@ -67,12 +76,12 @@ def decode(file_object: Union[bytes, bytearray, str]) -> UUDecodedFile:
         _ = int(permissions_mode)
     except ValueError:
         raise InvalidUUEncodedFileError(
-            "invalid uu encode file format, permissions code included is not valid"
+            "invalid uu encode file format, permissions code included is not valid or could not be found"
         )
     else:
         assert len(permissions_mode) == 3
         
-    # Extract the permissions mode of uu enecoded file
+    # extract the permissions mode of uu enecoded file
     permissions_mode_decoded: str = permissions_mode.decode()
     
     for line in uu_encoded_content:
@@ -97,11 +106,11 @@ def decode(file_object: Union[bytes, bytearray, str]) -> UUDecodedFile:
             finally:
                 binary_data.extend(decoded_output)
 
-    # Raise error if there was nothing in the file
+    # raise error if there was nothing in the file
     if not binary_data:
         raise InvalidUUEncodedFileError("no data in file, nothing was decoded")
 
-    # Structure all decoded uu file and characteristics
+    # structure all decoded uu file and characteristics
     file_name_from_uu, file_extension_from_uu = decompose_file_name(file_name_from_uu=file_name)
             
     file_mime_type_from_detection: Optional[str] = filetype.guess_mime(binary_data)
@@ -110,16 +119,22 @@ def decode(file_object: Union[bytes, bytearray, str]) -> UUDecodedFile:
     if file_extension_from_uu != file_extension_from_detection:
         pass
 
+    # Overwrite file extension and filename from detection, if either are None, with the file extension from uu
+    file_extension: Optional[str] = (
+        file_extension_from_detection if file_extension_from_detection is not None else file_extension_from_uu
+    )
+    if file_extension is None:
+        raise FileExtensionNotFoundError()
+
+    file_name: str = construct_filename(file_name_from_uu=file_name_from_uu)
+
     decoded_file = UUDecodedFile(
-        file_name=file_name_from_uu,
+        file_name=file_name,
         permissions_mode=permissions_mode_decoded,
         end_footer_included=end_footer_included,
         file_mime_type=file_mime_type_from_detection,
-        file_extension=file_extension_from_detection
+        file_extension=file_extension
     )
-    decoded_file._set_uu_bytearray(decoded_bytes=binary_data)
+    decoded_file.uu_decoded_bytes = binary_data
        
     return decoded_file
-
-decoded_file = decode(file_object='C:/Users/12158/Desktop/Test UU/test_uu_simple.txt')
-print(decoded_file)
