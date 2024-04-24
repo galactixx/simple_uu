@@ -2,10 +2,19 @@ from typing import Optional, Tuple, Union
 import os
 import uuid
 
+from simple_uu.logger import set_up_logger
+
+logger = set_up_logger(__name__)
+
 def construct_filename(file_name_from_uu: Optional[str]) -> str:
     if file_name_from_uu is None:
         uu_8_file_id = str(uuid.uuid4())[:8]
-        return f'simple-uu-decode-{uu_8_file_id}'
+        file_name_generated = f'simple-uu-decode-{uu_8_file_id}'
+
+        logger.info(
+            f"filename did not appear in the uu header, generating alternate filename {file_name_generated}"
+        )
+        return file_name_generated
     else:
         return file_name_from_uu
 

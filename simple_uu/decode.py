@@ -1,11 +1,13 @@
 import binascii
 from binascii import Error
 from typing import Generator, Optional, Union
+from pathlib import Path
 import os
 
 import charset_normalizer
 import filetype
 
+from simple_uu.logger import set_up_logger
 from simple_uu.types import UUDecodedFile
 from simple_uu.utils import (
     construct_filename,
@@ -16,6 +18,8 @@ from simple_uu.exceptions import (
     FileExtensionNotFoundError,
     InvalidUUEncodedFileError
 )
+
+logger = set_up_logger(__name__)
 
 def _from_charset_normalizer(content: bytes) -> Generator[bytes, None, None]:
     """
@@ -34,14 +38,14 @@ def _from_charset_normalizer(content: bytes) -> Generator[bytes, None, None]:
         yield line
 
 
-def decode(file_object: Union[str, bytes, bytearray]) -> UUDecodedFile:
+def decode(file_object: Union[str, Path, bytes, bytearray]) -> UUDecodedFile:
     """
     """
     binary_data = bytearray()
     end_footer_included = False
     
     # if a str is passed in, then this is expected to be an existing file path
-    if isinstance(file_object, str):
+    if isinstance(file_object, (str, Path)):
         if os.path.exists(file_object) and os.path.isfile(file_object):
             with open(file_object, 'rb') as uu_encoded_file:
                 uu_encoded_bytes: bytes = uu_encoded_file.read()
@@ -112,12 +116,14 @@ def decode(file_object: Union[str, bytes, bytearray]) -> UUDecodedFile:
 
     # structure all decoded uu file and characteristics
     file_name_from_uu, file_extension_from_uu = decompose_file_name(file_name_from_uu=file_name)
-            
+
     file_mime_type_from_detection: Optional[str] = filetype.guess_mime(binary_data)
     file_extension_from_detection: Optional[str] = filetype.guess_extension(binary_data)
 
     if file_extension_from_uu != file_extension_from_detection:
-        pass
+        logger.warning(
+            "the file extension generated from file type detection does not match the extension from uu header"
+        )
 
     # Overwrite file extension and filename from detection, if either are None, with the file extension from uu
     file_extension: Optional[str] = (

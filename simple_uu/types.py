@@ -1,19 +1,26 @@
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Union
 from os import PathLike
 
 from textwrap import dedent
 
-@dataclass
 class UUDecodedFile:
-    file_name: str
-    permissions_mode: str
-    end_footer_included: bool
-    file_mime_type: str
-    file_extension: str
+    """
+    """
+    def __init__(
+        self,
+        file_name: str,
+        permissions_mode: str,
+        end_footer_included: bool,
+        file_mime_type: str,
+        file_extension: str
+    ):
+        self.file_name = file_name
+        self.permissions_mode = permissions_mode
+        self.end_footer_included = end_footer_included
+        self.file_mime_type = file_mime_type
+        self.file_extension = file_extension
     
-    def __post_init__(self) -> None:
         self.__bytearray: bytearray = bytearray()
 
     def __str__(self) -> str:
@@ -55,6 +62,8 @@ class UUDecodedFile:
         path.write_bytes(self.uu_decoded_bytes)
 
 
-@dataclass
 class UUEncodedFile:
-    pass
+    """
+    """
+    def __init__(self):
+        pass

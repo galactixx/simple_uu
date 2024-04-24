@@ -1,4 +1,30 @@
 import logging
 
-def set_up_logging(self) -> logging.Logger:
-    pass
+from rich.logging import RichHandler
+
+def set_up_logger(name: str) -> logging.Logger:
+    """
+    """
+    root_logger = logging.getLogger('simple_uu')
+
+    if name != root_logger.name:
+        logger = root_logger.getChild(name)
+    else:
+        logger = root_logger
+
+    # Set handler for logger if none exst
+    if not logger.handlers:
+
+        # Set handler for logger
+        logger.handlers.clear()
+
+        handler = RichHandler(rich_tracebacks=True, markup=False)
+        formatter = logging.Formatter("%(name)s - %(message)s")
+        handler.setFormatter(formatter)
+
+        logger.setLevel(level=logging.DEBUG)
+
+        logger.addHandler(handler)
+        logger.propagate = False
+
+    return logger
