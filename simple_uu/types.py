@@ -4,38 +4,23 @@ from os import PathLike
 
 from textwrap import dedent
 
-class UUDecodedFile:
+class BaseUUFile(object):
     """
     """
     def __init__(
         self,
         file_name: str,
         permissions_mode: str,
-        end_footer_included: bool,
         file_mime_type: str,
         file_extension: str
     ):
         self.file_name = file_name
         self.permissions_mode = permissions_mode
-        self.end_footer_included = end_footer_included
         self.file_mime_type = file_mime_type
         self.file_extension = file_extension
-    
+
         self.__bytearray: bytearray = bytearray()
 
-    def __str__(self) -> str:
-        return repr(self)
-
-    def __repr__(self) -> str:
-        class_repr = (
-            f'{self.__class__.__name__}('
-            f'file_name={self.file_name}, '
-            f'permissions_mode={self.permissions_mode}, '
-            f'file_mime_type={self.file_mime_type}, '
-            f'file_extension={self.file_extension})'
-        )
-        return dedent(text=class_repr)
-    
     @property
     def full_filename(self) -> str:
         return f'{self.file_name}.{self.file_extension}'
@@ -62,8 +47,67 @@ class UUDecodedFile:
         path.write_bytes(self.uu_decoded_bytes)
 
 
-class UUEncodedFile:
+class UUDecodedFile(BaseUUFile):
     """
     """
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        file_name: str,
+        permissions_mode: str,
+        end_footer_included: bool,
+        file_mime_type: str,
+        file_extension: str
+    ):
+        super().__init__(
+            file_name=file_name,
+            permissions_mode=permissions_mode,
+            file_mime_type=file_mime_type,
+            file_extension=file_extension
+        )
+
+        self.end_footer_included = end_footer_included
+
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        class_repr = (
+            f'{self.__class__.__name__}('
+            f'file_name={self.file_name}, '
+            f'permissions_mode={self.permissions_mode}, '
+            f'file_mime_type={self.file_mime_type}, '
+            f'file_extension={self.file_extension}, '
+            f'end_footer_included={self.end_footer_included})'
+        )
+        return dedent(text=class_repr)
+
+
+class UUEncodedFile(BaseUUFile):
+    """
+    """
+    def __init__(
+        self,
+        file_name: str,
+        permissions_mode: str,
+        file_mime_type: str,
+        file_extension: str
+    ):
+        super().__init__(
+            file_name=file_name,
+            permissions_mode=permissions_mode,
+            file_mime_type=file_mime_type,
+            file_extension=file_extension
+        )
+
+    def __str__(self) -> str:
+        return repr(self)
+
+    def __repr__(self) -> str:
+        class_repr = (
+            f'{self.__class__.__name__}('
+            f'file_name={self.file_name}, '
+            f'permissions_mode={self.permissions_mode}, '
+            f'file_mime_type={self.file_mime_type}, '
+            f'file_extension={self.file_extension})'
+        )
+        return dedent(text=class_repr)
