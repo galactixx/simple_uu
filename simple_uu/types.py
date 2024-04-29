@@ -1,11 +1,17 @@
 from pathlib import Path
 from typing import Union
 from os import PathLike
-
 from textwrap import dedent
 
 class BaseUUFile(object):
     """
+    
+
+    Args:
+        file_name (str): .
+        permissions_mode (str): .
+        file_mime_type (str): .
+        file_extension (str): .    
     """
     def __init__(
         self,
@@ -84,6 +90,12 @@ class UUDecodedFile(BaseUUFile):
 
 class UUEncodedFile(BaseUUFile):
     """
+
+    Args:
+        file_name (str): .
+        permissions_mode (str): .
+        file_mime_type (str): .
+        file_extension (str): .  
     """
     def __init__(
         self,

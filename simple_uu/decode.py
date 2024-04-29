@@ -27,12 +27,14 @@ _MAX_LINE_LENGTH = 61
 
 def _from_charset_normalizer(content: bytes) -> BytesIO:
     """
+    A private function to validate a bytes object has an ascii encoding and return
+    a BytesIO instance.
     """
     uu_encoded_content = charset_normalizer.from_bytes(content)
     encoding = uu_encoded_content.best()
 
     # charset_normalizer will classify the uuencoded ascii text as utf_8, so
-    # check for both ascii and utf_8 encoding output
+    # Check for both ascii and utf_8 encoding output
     if encoding.encoding not in {'ascii', 'utf_8'}:
         raise InvalidUUDecodingError(
             "invalid uu encode file format, file does not have an ascii encoding"
@@ -43,16 +45,25 @@ def _from_charset_normalizer(content: bytes) -> BytesIO:
 
 def decode(file_object: Union[str, Path, bytes, bytearray]) -> UUDecodedFile:
     """
+    Decode a file encoded in a uuencoded format.
+    
+    Args:
+        file_object (str | Path | bytes | bytearray): A file object is either a path
+            to a file, bytes object or bytearray object. All must contain uuencoded data.
+
+    Returns:
+        UUDecodedFile: A UUDecodedFile instance providing the decoded data along with
+            a number of attributes, properties, and methods.
     """
     binary_data = bytearray()
     end_footer_included = False
     
-    # if a str is passed in, then this is expected to be an existing file path
+    # If a str is passed in, then this is expected to be an existing file path
     uu_encoded_bytes: bytes = load_file_object(file_object=file_object)
     uu_encoded_buffer: BytesIO = _from_charset_normalizer(content=uu_encoded_bytes)
     buffer_length = len(uu_encoded_buffer.getvalue())
 
-    # skip any excess white space before the header, if there are issues
+    # Skip any excess white space before the header, if there are issues
     while uu_encoded_buffer.tell() != buffer_length:
         header_line: bytes = uu_encoded_buffer.readline().rstrip(b'\n\r')
 
@@ -76,7 +87,7 @@ def decode(file_object: Union[str, Path, bytes, bytearray]) -> UUDecodedFile:
     else:
         assert len(permissions_mode) == 3
         
-    # extract the permissions mode of uu enecoded file
+    # Extract the permissions mode of uu enecoded file
     permissions_mode_decoded: str = permissions_mode.decode('ascii')
     
     for line in uu_encoded_buffer.readlines():
@@ -106,11 +117,11 @@ def decode(file_object: Union[str, Path, bytes, bytearray]) -> UUDecodedFile:
             finally:
                 binary_data.extend(decoded_output)
 
-    # raise error if there was nothing in the file
+    # Raise error if there was nothing in the file
     if not binary_data:
         raise InvalidUUDecodingError("no data in file, nothing was decoded")
 
-    # structure all decoded uu file and characteristics
+    # Structure all decoded uu file and characteristics
     file_name_from_uu, file_extension_from_uu = decompose_file_name(file_name_from_uu=file_name)
 
     file_mime_type_from_detection: Optional[str] = filetype.guess_mime(binary_data)
@@ -140,6 +151,3 @@ def decode(file_object: Union[str, Path, bytes, bytearray]) -> UUDecodedFile:
     decoded_file.uu_decoded_bytes = binary_data
        
     return decoded_file
-
-
-decoded = decode(file_object=r'C:\Users\12158\Desktop\Test UU\test_uu.txt')

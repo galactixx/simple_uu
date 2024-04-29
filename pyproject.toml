@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "simple-uu"
+version = "0.1.0"
+description = "SimpleUU effortlessly decodes uuencoded files, providing a structured and intuitive interface for seamless extraction of content and metadata, emphasizing user ease and the organized handling of uuencoded data."
+authors = ["galactixx"]
+license = "MIT License"
+readme = "README.md"
+keywords = [
+    "uu",
+    "uuencoded"
+    "encoding",
+    "decoding"
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+charset-normalizer = "^3.3.2"
+filetype = "^1.2.0"
+unix-perms = "^0.1.0"
+rich = "^13.7.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

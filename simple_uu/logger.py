@@ -4,6 +4,13 @@ from rich.logging import RichHandler
 
 def set_up_logger(name: str) -> logging.Logger:
     """
+    The setup for the package logger. Logger only has streaming capabilities.
+
+    Args:
+        name (str): The name of the module in which the logger resides.
+
+    Returns:
+        Logger: A Logger instance.
     """
     root_logger = logging.getLogger('simple_uu')
 
@@ -12,10 +19,8 @@ def set_up_logger(name: str) -> logging.Logger:
     else:
         logger = root_logger
 
-    # Set handler for logger if none exst
+    # Set handler for logger if none exist
     if not logger.handlers:
-
-        # Set handler for logger
         logger.handlers.clear()
 
         handler = RichHandler(rich_tracebacks=True, markup=False)
