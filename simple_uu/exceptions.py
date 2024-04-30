@@ -19,6 +19,14 @@ class InvalidUUEncodingError(BaseError):
         super().__init__(message)
 
 
+class InvalidPermissionsMode(BaseError):
+    """Error with the the permissions mode."""
+    def __init__(self):
+        super().__init__(
+            message='permissions mode included is invalid'
+        )
+
+
 class FileExtensionNotFoundError(BaseError):
     """
     Error that occurs when decoding uuencoded data, where the file type
@@ -27,8 +35,7 @@ class FileExtensionNotFoundError(BaseError):
     def __init__(self):
         super().__init__(
             message=(
-                'the file extension was not found in header, and could not be '
-                'detected from the signature'
+                'the file extension was not found in header, and could not be detected from the signature'
             )
         )
 
@@ -41,7 +48,6 @@ class FileExtensionNotDetected(BaseError):
     def __init__(self):
         super().__init__(
             message=(
-                'the file extension was not provided, and could not be detected '
-                'from the signature'
+                'the file extension was not provided, and could not be detected from the signature'
             )
         )

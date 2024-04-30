@@ -7,6 +7,7 @@ from simple_uu.types import (
 from simple_uu.exceptions import (
     FileExtensionNotDetected,
     FileExtensionNotFoundError,
+    InvalidPermissionsMode,
     InvalidUUDecodingError,
     InvalidUUEncodingError
 )
@@ -19,6 +20,7 @@ __all__ = [
     'UUEncodedFile',
     'FileExtensionNotDetected',
     'FileExtensionNotFoundError',
+    'InvalidPermissionsMode',
     'InvalidUUDecodingError',
     'InvalidUUEncodingError'
 ]

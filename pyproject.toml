@@ -7,7 +7,7 @@ license = "MIT License"
 readme = "README.md"
 keywords = [
     "uu",
-    "uuencoded"
+    "uuencoded",
     "encoding",
     "decoding"
 ]

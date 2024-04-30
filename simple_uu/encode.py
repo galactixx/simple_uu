@@ -1,18 +1,22 @@
 import binascii
-from typing import Optional, Union
-from pathlib import Path
+from typing import Optional, Tuple, Union
+from os import PathLike
 from io import BytesIO
 from mimetypes import types_map
 
 import charset_normalizer
 import filetype
-from unix_perms import from_octal_to_permissions_code
+from unix_perms import (
+    from_octal_to_permissions_code,
+    InvalidOctalError
+)
 
 from simple_uu.utils import load_file_object
 from simple_uu.types import UUEncodedFile
 from simple_uu.logger import set_up_logger
 from simple_uu.exceptions import (
     FileExtensionNotDetected,
+    InvalidPermissionsMode,
     InvalidUUEncodingError
 )
 
@@ -28,9 +32,14 @@ def _permissions_mode(octal_permission: Optional[Union[str, int]]) -> int:
     if octal_permission is None:
         return 0o644
     else:
-        return from_octal_to_permissions_code(
-            octal=octal_permission
-        )
+        try:
+            permissions_mode: str = from_octal_to_permissions_code(
+                octal=octal_permission
+            )
+        except InvalidOctalError:
+            raise InvalidPermissionsMode()
+        else:
+            return permissions_mode
     
 
 def _file_extension(extension: Optional[str]) -> Optional[str]:
@@ -42,14 +51,42 @@ def _file_extension(extension: Optional[str]) -> Optional[str]:
             local_extension = '.' + extension
 
         if local_extension not in types_map:
-            raise ValueError('invalid extension provided')
+            raise ValueError('invalid file extension provided')
         
     return extension
 
 
+def _encode_from_charset_normalizer(content: bytes) -> Tuple[BytesIO, Optional[str], Optional[str]]:
+    """
+    A private function to validate that a bytes object is binary and detect mime and extension.
+    Will return a BytesIO instance along with the detected mime and extension.
+    """
+    # Ensure that file object passed is in binary form
+    is_binary = charset_normalizer.is_binary(content)
+    encoding = charset_normalizer.from_bytes(content).best()
+    if not is_binary:
+        raise InvalidUUEncodingError(
+            "the file included is not a binary file, must be a binary file"
+        )
+    
+    # Ensure that binary data does not have a character encoding
+    if encoding is not None:
+        raise InvalidUUEncodingError(
+            "binary file cannot have a character encoding"
+        )
+
+    # Detect mime type and file extension from binary
+    file_mime_type_from_detection: Optional[str] = filetype.guess_mime(content)
+    file_extension_from_detection: Optional[str] = filetype.guess_extension(content)
+
+    return (
+        BytesIO(content), file_mime_type_from_detection, file_extension_from_detection
+    )
+
+
 def encode(
-    file_object: Union[str, Path, bytes, bytearray],
-    file_name: str,
+    file_object: Union[str, PathLike, bytes, bytearray],
+    filename: str,
     octal_permission: Optional[Union[str, int]] = None,
     extension: Optional[str] = None
 ) -> UUEncodedFile:
@@ -67,9 +104,9 @@ def encode(
     not provided the it will be detected based off of the binary data.
 
     Args:
-        file_object (str | Path | bytes | bytearray): A file object is either a path
+        file_object (str | PathLike | bytes | bytearray): A file object is either a path
             to a file, bytes object or bytearray object. All must contain binary data.
-        file_name (str): The name of the file being encoded.
+        filename (str): The name of the file being encoded.
         octal_permission (str | int | None): An octal permission as a string or integer.
         extension (str | None): An extension for the file being encoded.
 
@@ -77,24 +114,15 @@ def encode(
         UUEncodedFile: A UUEncodedFile instance providing the encoded data along with
             a number of attributes, properties, and methods.
     """
-    file_name = '_'.join(item for item in file_name.split())
+    filename = '_'.join(item for item in filename.split())
     permissions_mode = _permissions_mode(octal_permission=octal_permission)
     file_extension = _file_extension(extension=extension)
 
     # Load file and collection objects
     binary_data = bytearray()
-    binary_bytes: bytes = load_file_object(file_object=file_object)
-
-    # Ensure that file object passed is in binary form
-    is_binary = charset_normalizer.is_binary(binary_bytes)
-    if not is_binary:
-        raise InvalidUUEncodingError(
-            "the file included is not a binary file, must be a binary file"
-        )
-    
-    # Detect mime type and file extension from binary
-    file_mime_type_from_detection: Optional[str] = filetype.guess_mime(binary_bytes)
-    file_extension_from_detection: Optional[str] = filetype.guess_extension(binary_bytes)
+    binary_buffer, file_mime_type_from_detection, file_extension_from_detection  = _encode_from_charset_normalizer(
+        content=load_file_object(file_object=file_object)
+    )
 
     # If no file extension was provided and there was not a successful detection
     # raise a FileExtensionNotDetected error
@@ -106,28 +134,35 @@ def encode(
                 "the file extension generated from file type detection does not match the extension provided"
             )
 
+    # By default, use extension from detection over that provided by user
+    # If file extension cannot be detected, then the extension provided  is used
+    file_extension: Optional[str] = (
+        file_extension_from_detection if file_extension_from_detection is not None else file_extension
+    )
+
     # Generate header for uuencoded file and add to bytearray
-    full_filename: str = file_name + '.' + file_extension_from_detection
+    full_filename: str = filename + '.' + file_extension
     uu_header: bytes = f'begin {permissions_mode} {full_filename}\n'.encode('ascii')
     binary_data.extend(uu_header)
 
-    # Convert validated binary data into a BytesIO instance
-    binary_bytes_buffer = BytesIO(initial_bytes=binary_bytes)
-    buffer_length = len(binary_bytes_buffer.getvalue())
+    buffer_length = len(binary_buffer.getvalue())
 
     # Iterate through every 45 bits of the binary data and encode with binascii
-    while binary_bytes_buffer.tell() != buffer_length:
-        bytes_line: bytes = binary_bytes_buffer.read(_MAX_BINARY_LENGTH)
+    while binary_buffer.tell() != buffer_length:
+        bytes_line: bytes = binary_buffer.read(_MAX_BINARY_LENGTH)
         encoded_bytes: bytes = binascii.b2a_uu(bytes_line)
         binary_data.extend(encoded_bytes)
 
+    # Add footer to bytearray
+    binary_data.extend(b'\nend')
+
     # Structure all related variables in a UUEncodedFile instance
     encoded_file = UUEncodedFile(
-        file_name=file_name,
+        filename=filename,
         permissions_mode=permissions_mode,
         file_mime_type=file_mime_type_from_detection,
-        file_extension=file_extension_from_detection
+        file_extension=file_extension
     )
-    encoded_file.uu_decoded_bytes = binary_data
+    encoded_file.uu_bytes = binary_data
 
     return encoded_file
