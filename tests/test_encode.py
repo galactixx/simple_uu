@@ -1,5 +1,4 @@
 import pytest
-
 from simple_uu import (
     encode,
     FileExtensionNotDetected,
@@ -8,7 +7,7 @@ from simple_uu import (
 )
 
 
-def test_error_permissions_mode() -> None:
+def test_encode_error_permissions_mode() -> None:
     """
     Test error handling for an invalid permissions mode.
     """
@@ -17,16 +16,16 @@ def test_error_permissions_mode() -> None:
         _ = encode(
             file_object=example_file_object, filename='example', octal_permission='999'
         )
-        assert exc_info == 'permissions mode included is invalid'
+    assert str(exc_info.value) == 'permissions mode included is invalid'
 
     with pytest.raises(InvalidPermissionsMode) as exc_info:
         _ = encode(
             file_object=example_file_object, filename='example', octal_permission='7777'
         )
-        assert exc_info == 'permissions mode included is invalid'
+    assert str(exc_info.value) == 'permissions mode included is invalid'
 
 
-def test_error_file_extension() -> None:
+def test_encode_error_file_extension() -> None:
     """
     Test error handling for an invalid file extension.
     """
@@ -35,12 +34,12 @@ def test_error_file_extension() -> None:
         _ = encode(
             file_object=example_file_object, filename='example', extension='fake'
         )
-        assert exc_info == 'invalid file extension provided'
+    assert str(exc_info.value) == 'invalid file extension provided'
 
     
-def test_error_is_binary() -> None:
+def test_encode_error_is_binary() -> None:
     """
-    Test error handling for a file inserted that is not binary or has a character encoding.
+    Test error handling for a file that is not binary or has a character encoding.
     """
     example_file_object = bytearray(
         b'M_]C_X  02D9)1@ ! 0$ 8 !@  #_X0)F17AI9@  34T *@    @  P$2'
@@ -52,7 +51,7 @@ def test_error_is_binary() -> None:
         _ = encode(
             file_object=example_file_object, filename='example', extension='jpg'
         )
-        assert exc_info == 'binary file cannot have a character encoding'
+    assert str(exc_info.value) == 'binary file cannot have a character encoding'
 
     example_file_object = bytearray(
         b'this is clearly not binary data, should throw an error'
@@ -63,10 +62,12 @@ def test_error_is_binary() -> None:
         _ = encode(
             file_object=example_file_object, filename='example', extension='jpg'
         )
-        assert exc_info == 'the file included is not a binary file, must be a binary file'
+    assert str(exc_info.value) == (
+        'the file included is not a binary file, must be a binary file'
+    )
 
 
-def test_error_file_extension() -> None:
+def test_encode_error_file_extension() -> None:
     """
     Test error handling for an unknown file extension/type.
     """
@@ -77,9 +78,9 @@ def test_error_file_extension() -> None:
         _ = encode(
             file_object=example_file_object, filename='example'
         )
-        assert (
-            exc_info == 'the file extension was not provided, and could not be detected from the signature'
-        )
+    assert str(exc_info.value) == (
+        'the file extension was not provided, and could not be detected from the signature'
+    )
 
 
 def test_encode_partial() -> None:

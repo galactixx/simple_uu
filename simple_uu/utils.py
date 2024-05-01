@@ -62,23 +62,24 @@ def construct_filename(filename_from_uu: Optional[str]) -> str:
 
 
 def decompose_filename(
-    filename_from_uu: Optional[Union[str, bytes]]
+    filename_from_uu: Optional[bytes]
 ) -> Tuple[Optional[str], Optional[str]]:
     """
     Extracts both the filename and file extension from the filename included in the
     header of the uu file.
     
     Args:
-        filename_from_uu (str | None): Filename extracted from uu header.
+        filename_from_uu (bytes | None): Filename extracted from uu header.
 
     Returns:
-        Tuple[str | None, str | None]: A tuple object containing the filename and file extension.
+        Tuple[str | None, str | None]: A tuple object containing the filename and file
+            extension as strings.
     """
     if filename_from_uu is None:
         return None, None
 
-    if isinstance(filename_from_uu, bytes):
-        filename_from_uu: str = filename_from_uu.decode('ascii')
+    # Decode bytes into a string
+    filename_from_uu: str = filename_from_uu.decode('ascii')
 
     filename, file_extension = os.path.splitext(filename_from_uu)
     if not file_extension.startswith('.'):

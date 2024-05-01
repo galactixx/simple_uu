@@ -1,6 +1,117 @@
 import pytest
+from simple_uu import (
+    decode,
+    FileExtensionNotFoundError,
+    InvalidPermissionsMode,
+    InvalidUUDecodingError
+)
 
-from simple_uu import decode
+
+def test_decode_error_character_encoding() -> None:
+    """
+    Test error handling for a file that has a non-ascii character encoding.
+    """
+    example_file_object = bytearray(
+        b'begin 777 example.jpg\n\xC3\x28\x96\xA0\nend'
+    )
+    with pytest.raises(InvalidUUDecodingError) as exc_info:
+        _ = decode(file_object=example_file_object)
+    assert str(exc_info.value) == (
+        'invalid character encoding, file must have an ascii character encoding'
+    )
+
+
+def test_test_decode_error_no_content() -> None:
+    """
+    Test error handling for a file that has no content.
+    """
+    example_file_object = bytearray(b'begin 777 example.jpg\n\nend')
+    with pytest.raises(InvalidUUDecodingError) as exc_info:
+        _ = decode(file_object=example_file_object)
+    assert str(exc_info.value) == (
+        'apart from header there is no content in file, nothing was decoded'
+    )
+
+    example_file_object = bytearray(b'')
+    with pytest.raises(InvalidUUDecodingError) as exc_info:
+        _ = decode(file_object=example_file_object)
+    assert str(exc_info.value) == (
+        'there is no content in file, nothing was decoded'
+    )
+
+
+def test_decode_error_malformed_header() -> None:
+    """
+    Test error handling for a file that has a malformed header.
+    """
+    example_file_object = bytearray(b'777 example.jpg\n\nend')
+    with pytest.raises(InvalidUUDecodingError) as exc_info:
+        _ = decode(file_object=example_file_object)
+    assert str(exc_info.value) == (
+        "missing 'begin' section of header at start of file"
+    )
+
+
+def test_decode_error_permissions_mode() -> None:
+    """
+    Test error handling for an invalid permissions mode.
+    """
+    example_file_object = bytearray(
+        b'begin 842 example.jpg\nM_]C_X  02D9)1@ ! 0$ 8 !@  #_X0)F17AI9@  34T *@    @  P$2\nend'
+    )
+    with pytest.raises(InvalidPermissionsMode) as exc_info:
+        _ = decode(file_object=example_file_object)
+    assert str(exc_info.value) == 'permissions mode included is invalid'
+
+    example_file_object = bytearray(
+        b'begin 1111 example.jpg\nM_]C_X  02D9)1@ ! 0$ 8 !@  #_X0)F17AI9@  34T *@    @  P$2\nend'
+    )
+    with pytest.raises(InvalidPermissionsMode) as exc_info:
+        _ = decode(file_object=example_file_object)
+    assert str(exc_info.value) == 'permissions mode included is invalid'
+
+
+def test_decode_invalid_line_length() -> None:
+    """
+    Test error handling for a line length that is too long.
+    """
+    example_file_object = bytearray(
+        b'begin 742 example.jpg\nM_]C_X  02D9)1@ ! 0$ 8 !@  #_X0)F17AI9@  34T *@    @  P$2TTTTTT\nend'
+    )
+    with pytest.raises(InvalidUUDecodingError) as exc_info:
+        _ = decode(file_object=example_file_object)
+    assert str(exc_info.value) == (
+        'length of 63 is larger than the maximum allowed for a line of uuencoded data'
+    )
+
+
+def test_decode_illegal_character() -> None:
+    """
+    Test error handling for a line that has a non-ascii character.
+    """
+    example_file_object = bytearray( # The lowercase q is the issue in this example
+        b'begin 742 example.jpg\nM./JH%ZQWFGW/;*I&+I^#6:.8U9AY_Y>IF/5Y&%,q*_8PIJL2,EV7D*E10J:;\nend'
+    )
+    with pytest.raises(InvalidUUDecodingError) as exc_info:
+        _ = decode(file_object=example_file_object)
+    assert str(exc_info.value) == (
+        'invalid ascii character, characters should have ascii codes ranging from 32 to 96'
+    )
+
+
+def test_decode_error_file_extension() -> None:
+    """
+    Test error handling for an unknown file extension/type.
+    """
+    example_file_object = bytearray( # The lowercase q is the issue in this example
+        b'begin 742\nM./JH%ZQWFGW/;*I&+I^#6:.8U9AY_Y>IF/5Y&%,Q*_8PIJL2,EV7D*E10J:;\nend'
+    )
+    with pytest.raises(FileExtensionNotFoundError) as exc_info:
+        _ = decode(file_object=example_file_object)
+    assert str(exc_info.value) == (
+        'the file extension was not found in header, and could not be detected from the signature'
+    )
+
 
 def test_decode_partial() -> None:
     """

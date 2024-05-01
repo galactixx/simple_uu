@@ -40,9 +40,11 @@ def _decode_from_charset_normalizer(content: bytes) -> BytesIO:
 
     # charset_normalizer can classify uuencoded characters as utf_8, so
     # Check for both ascii and utf_8 encoding output
-    if encoding.encoding not in {'ascii', 'utf_8'}:
+    if encoding is None or (
+        encoding is not None and encoding.encoding not in {'ascii', 'utf_8'}
+    ):
         raise InvalidUUDecodingError(
-            "invalid character encoding, file must have an ascii encoding"
+            "invalid character encoding, file must have an ascii character encoding"
         )
     
     return BytesIO(initial_bytes=encoding.raw)
@@ -126,6 +128,7 @@ def decode(file_object: Union[str, PathLike, bytes, bytearray]) -> UUDecodedFile
                 decoded_output: bytes = binascii.a2b_uu(line_clean)
             except Error:
                 try:
+                    # Taken from uu standard library
                     nbytes: int = (((line_clean[0] - 32) & 63) * 4 + 5) // 3
                     decoded_output: bytes = binascii.a2b_uu(line_clean[:nbytes])
                 except Error as exc_info:
@@ -135,12 +138,16 @@ def decode(file_object: Union[str, PathLike, bytes, bytearray]) -> UUDecodedFile
                         )
                     else:
                         raise Error(exc_info)
-            finally:
+                else:
+                    binary_data.extend(decoded_output)
+            else:
                 binary_data.extend(decoded_output)
 
     # Raise error if there was nothing was decoded
     if not binary_data:
-        raise InvalidUUDecodingError("there is no content in file, nothing was decoded")
+        raise InvalidUUDecodingError(
+            "apart from header there is no content in file, nothing was decoded"
+        )
 
     # Extract name and extension from filename
     filename_from_uu, file_extension_from_uu = decompose_filename(filename_from_uu=filename_uu)
