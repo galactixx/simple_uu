@@ -175,8 +175,8 @@ def test_encode_complete() -> None:
         octal_permission='420'
     )
 
-    with open('./tests/examples/encoded/example_1.txt', 'rb') as example_file:
-        example_1_encoded_test = example_file.read()
+    with open('./tests/examples/encoded/example_1.txt', 'r', newline='') as example_file:
+        example_1_encoded_test = bytes(example_file.read(), encoding='ascii')
 
     assert example_1_encode.file_extension == 'jpg'
     assert example_1_encode.file_mime_type == 'image/jpeg'
@@ -192,8 +192,8 @@ def test_encode_complete() -> None:
         octal_permission='777'
     )
 
-    with open('./tests/examples/encoded/example_2.txt', 'rb') as example_file:
-        example_2_encoded_test = example_file.read()
+    with open('./tests/examples/encoded/example_2.txt', 'r', newline='') as example_file:
+        example_2_encoded_test = bytes(example_file.read(), encoding='ascii')
 
     assert example_2_encode.file_extension == 'xlsx'
     assert example_2_encode.file_mime_type == (
@@ -211,8 +211,8 @@ def test_encode_complete() -> None:
         octal_permission='111'
     )
 
-    with open('./tests/examples/encoded/example_3.txt', 'rb') as example_file:
-        example_3_encoded_test = example_file.read()    
+    with open('./tests/examples/encoded/example_3.txt', 'r', newline='') as example_file:
+        example_3_encoded_test = bytes(example_file.read(), encoding='ascii')
 
     assert example_3_encode.file_extension == 'docx'
     assert example_3_encode.file_mime_type == (
@@ -230,8 +230,8 @@ def test_encode_complete() -> None:
         octal_permission='741'
     )
 
-    with open('./tests/examples/encoded/example_4.txt', 'rb') as example_file:
-        example_4_encoded_test = example_file.read()
+    with open('./tests/examples/encoded/example_4.txt', 'r', newline='') as example_file:
+        example_4_encoded_test = bytes(example_file.read(), encoding='ascii')
 
     assert example_4_encode.file_extension == 'pptx'
     assert example_4_encode.file_mime_type == (
