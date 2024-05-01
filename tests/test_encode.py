@@ -6,6 +6,9 @@ from simple_uu import (
     InvalidUUEncodingError
 )
 
+def _normalize_newlines(data: bytes) -> bytes:
+    return data.replace(b'\r\n', b'\n')
+
 
 def test_encode_error_permissions_mode() -> None:
     """
@@ -175,8 +178,8 @@ def test_encode_complete() -> None:
         octal_permission='420'
     )
 
-    with open('./tests/examples/encoded/example_1.txt', 'r', newline='') as example_file:
-        example_1_encoded_test = bytes(example_file.read(), encoding='ascii')
+    with open('./tests/examples/encoded/example_1.txt', 'rb') as example_file:
+        example_1_encoded_test = _normalize_newlines(data=example_file.read())
 
     assert example_1_encode.file_extension == 'jpg'
     assert example_1_encode.file_mime_type == 'image/jpeg'
@@ -192,8 +195,8 @@ def test_encode_complete() -> None:
         octal_permission='777'
     )
 
-    with open('./tests/examples/encoded/example_2.txt', 'r', newline='') as example_file:
-        example_2_encoded_test = bytes(example_file.read(), encoding='ascii')
+    with open('./tests/examples/encoded/example_2.txt', 'rb') as example_file:
+        example_2_encoded_test = _normalize_newlines(data=example_file.read())
 
     assert example_2_encode.file_extension == 'xlsx'
     assert example_2_encode.file_mime_type == (
@@ -211,8 +214,8 @@ def test_encode_complete() -> None:
         octal_permission='111'
     )
 
-    with open('./tests/examples/encoded/example_3.txt', 'r', newline='') as example_file:
-        example_3_encoded_test = bytes(example_file.read(), encoding='ascii')
+    with open('./tests/examples/encoded/example_3.txt', 'rb') as example_file:
+        example_3_encoded_test = _normalize_newlines(data=example_file.read())    
 
     assert example_3_encode.file_extension == 'docx'
     assert example_3_encode.file_mime_type == (
@@ -230,8 +233,8 @@ def test_encode_complete() -> None:
         octal_permission='741'
     )
 
-    with open('./tests/examples/encoded/example_4.txt', 'r', newline='') as example_file:
-        example_4_encoded_test = bytes(example_file.read(), encoding='ascii')
+    with open('./tests/examples/encoded/example_4.txt', 'rb') as example_file:
+        example_4_encoded_test = _normalize_newlines(data=example_file.read())
 
     assert example_4_encode.file_extension == 'pptx'
     assert example_4_encode.file_mime_type == (
