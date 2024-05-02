@@ -125,7 +125,6 @@ def test_decode_partial() -> None:
     )
     example_1_decode = decode(file_object=example_1_bytes)
 
-    assert example_1_decode.end_footer_included
     assert example_1_decode.filename == 'example_1'
     assert example_1_decode.permissions_mode == '777'
     assert example_1_decode.uu_bytes == (
@@ -141,7 +140,6 @@ def test_decode_partial() -> None:
     )
     example_2_decode = decode(file_object=example_2_bytes)
 
-    assert example_2_decode.end_footer_included
     assert example_2_decode.filename == 'example_2'
     assert example_2_decode.permissions_mode == '634'
     assert example_2_decode.uu_bytes == (
@@ -157,7 +155,6 @@ def test_decode_partial() -> None:
     )
     example_3_decode = decode(file_object=example_3_bytes)
 
-    assert example_3_decode.end_footer_included
     assert example_3_decode.filename == 'example_3'
     assert example_3_decode.permissions_mode == '421'
     assert example_3_decode.uu_bytes == (
@@ -172,7 +169,6 @@ def test_decode_partial() -> None:
     )
     example_4_decode = decode(file_object=example_4_bytes)
 
-    assert not example_4_decode.end_footer_included
     assert example_4_decode.filename == 'example_4'
     assert example_4_decode.permissions_mode == '444'
     assert example_4_decode.uu_bytes == (
@@ -194,7 +190,6 @@ def test_decode_complete() -> None:
     with open('./tests/examples/decoded/example_1.jpg', 'rb') as example_file:
         example_1_decoded_test = example_file.read()
 
-    assert example_1_decode.end_footer_included
     assert example_1_decode.file_extension == 'jpg'
     assert example_1_decode.file_mime_type == 'image/jpeg'
     assert example_1_decode.filename == 'example_1'
@@ -210,7 +205,6 @@ def test_decode_complete() -> None:
     with open('./tests/examples/decoded/example_2.xlsx', 'rb') as example_file:
         example_2_decoded_test = example_file.read()
 
-    assert example_2_decode.end_footer_included
     assert example_2_decode.file_extension == 'xlsx'
     assert example_2_decode.file_mime_type == (
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -228,7 +222,6 @@ def test_decode_complete() -> None:
     with open('./tests/examples/decoded/example_3.docx', 'rb') as example_file:
         example_3_decoded_test = example_file.read()
 
-    assert example_3_decode.end_footer_included
     assert example_3_decode.file_extension == 'docx'
     assert example_3_decode.file_mime_type == (
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -246,7 +239,6 @@ def test_decode_complete() -> None:
     with open('./tests/examples/decoded/example_4.pptx', 'rb') as example_file:
         example_4_decoded_test = example_file.read()
 
-    assert example_4_decode.end_footer_included
     assert example_4_decode.file_extension == 'pptx'
     assert example_4_decode.file_mime_type == (
         'application/vnd.openxmlformats-officedocument.presentationml.presentation'

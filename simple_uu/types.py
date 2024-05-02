@@ -54,7 +54,6 @@ class UUDecodedFile(BaseUUFile):
     Args:
         filename (str): The filename of the uudecoded file.
         permissions_mode (str): The Unix permissions mode of the uudecoded file.
-        end_footer_included (bool): Boolean indicating whether there was a footer present.
         file_mime_type (str): The mime type mode of the uudecoded file.
         file_extension (str): The file extension of the uudecoded file.
     """
@@ -62,7 +61,6 @@ class UUDecodedFile(BaseUUFile):
         self,
         filename: str,
         permissions_mode: str,
-        end_footer_included: bool,
         file_mime_type: str,
         file_extension: str
     ):
@@ -73,8 +71,6 @@ class UUDecodedFile(BaseUUFile):
             file_extension=file_extension
         )
 
-        self.end_footer_included = end_footer_included
-
     def __str__(self) -> str:
         return repr(self)
 
@@ -84,8 +80,7 @@ class UUDecodedFile(BaseUUFile):
             f'filename={self.filename}, '
             f'permissions_mode={self.permissions_mode}, '
             f'file_mime_type={self.file_mime_type}, '
-            f'file_extension={self.file_extension}, '
-            f'end_footer_included={self.end_footer_included})'
+            f'file_extension={self.file_extension})'
         )
         return dedent(text=class_repr)
     

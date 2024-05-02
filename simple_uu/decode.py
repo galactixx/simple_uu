@@ -48,7 +48,7 @@ def _decode_from_charset_normalizer(content: bytes, encoding_validation: bool) -
                 "invalid character encoding, file must have an ascii character encoding"
             )
     
-    return BytesIO(initial_bytes=encoding.raw)
+    return BytesIO(initial_bytes=content)
 
 
 def decode(
@@ -68,7 +68,6 @@ def decode(
             a number of attributes, properties, and methods.
     """
     binary_data = bytearray()
-    end_footer_included = False
     
     # Load file object into a BytesIO instance
     uu_encoded_buffer: BytesIO = _decode_from_charset_normalizer(
@@ -78,8 +77,8 @@ def decode(
     buffer_length = len(uu_encoded_buffer.getvalue())
 
     # In case there are any issues, any excess white space before the header is skipped
-    while uu_encoded_buffer.tell() != buffer_length:
-        header_line: bytes = uu_encoded_buffer.readline().strip(b'\n\r')
+    for line in uu_encoded_buffer:
+        header_line: bytes = line.strip(b'\n\r')
 
         if header_line:
             break
@@ -112,16 +111,12 @@ def decode(
         raise InvalidPermissionsMode()
     
     # Iterate through each line of buffer and decode using binascii
-    for line in uu_encoded_buffer.readlines():
-        if line.startswith(b'\r') or line.startswith(b'\n'):
-            continue
-        elif line.startswith(b'end'):
-            end_footer_included = True
-            continue
-        else:
-            # Perform removal of new line and carriage return characters from the end of each line
-            line_clean: bytes = line.rstrip(b'\n\r')
-            line_length: int = len(line_clean)
+    for line in uu_encoded_buffer:
+        # Perform removal of new line and carriage return characters from the end of each line
+        uuencoded_line: bytes = line.rstrip(b'\n\r')
+        
+        if uuencoded_line and not uuencoded_line.startswith(b'end'):
+            line_length: int = len(uuencoded_line)
 
             # Raise an error if the length of a line is larger than the maximum allowed
             if line_length > _MAX_LINE_LENGTH:
@@ -131,12 +126,12 @@ def decode(
             
             # Run decoding from binascii
             try:
-                decoded_output: bytes = binascii.a2b_uu(line_clean)
+                decoded_output: bytes = binascii.a2b_uu(uuencoded_line)
             except Error:
                 try:
                     # Taken from uu standard library
-                    nbytes: int = (((line_clean[0] - 32) & 63) * 4 + 5) // 3
-                    decoded_output: bytes = binascii.a2b_uu(line_clean[:nbytes])
+                    nbytes: int = (((uuencoded_line[0] - 32) & 63) * 4 + 5) // 3
+                    decoded_output: bytes = binascii.a2b_uu(uuencoded_line[:nbytes])
                 except Error as exc_info:
                     if str(exc_info) == 'Illegal char':
                         raise InvalidUUDecodingError(
@@ -178,7 +173,6 @@ def decode(
     decoded_file = UUDecodedFile(
         filename=filename,
         permissions_mode=permissions_mode,
-        end_footer_included=end_footer_included,
         file_mime_type=file_mime_type_from_detection,
         file_extension=file_extension
     )
