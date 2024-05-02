@@ -7,7 +7,7 @@ from simple_uu.exceptions import (FileExtensionNotDetected,
                                   InvalidUUEncodingError)
 from simple_uu.types import UUDecodedFile, UUEncodedFile
 
-__version__ = '0.2.0'
+__version__ = '0.1.0'
 __all__ = [
     'decode',
     'encode',
