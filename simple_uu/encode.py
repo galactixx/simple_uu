@@ -25,21 +25,25 @@ logger = set_up_logger(__name__)
 # Maximum length of binary for a given line of uuencoded data
 _MAX_BINARY_LENGTH = 45
 
-def _permissions_mode(octal_permission: Optional[Union[str, int]]) -> int:
+def _permissions_mode(octal_permission: Optional[Union[str, int]]) -> str:
     """
     A private function to convert an octal into a Unix permissions mode.
     """
     if octal_permission is None:
-        return 0o644
+        octal_permission = 0o644
+
+        logger.info(
+            "no permissions mode was given, mode has automatically been generated"
+        )
+
+    try:
+        permissions_mode: str = from_octal_to_permissions_code(
+            octal=octal_permission
+        )
+    except InvalidOctalError:
+        raise InvalidPermissionsMode()
     else:
-        try:
-            permissions_mode: str = from_octal_to_permissions_code(
-                octal=octal_permission
-            )
-        except InvalidOctalError:
-            raise InvalidPermissionsMode()
-        else:
-            return permissions_mode
+        return permissions_mode
     
 
 def _file_extension(extension: Optional[str]) -> Optional[str]:
@@ -56,24 +60,30 @@ def _file_extension(extension: Optional[str]) -> Optional[str]:
     return extension
 
 
-def _encode_from_charset_normalizer(content: bytes) -> Tuple[BytesIO, Optional[str], Optional[str]]:
+def _encode_from_charset_normalizer(
+    content: bytes,
+    encoding_validation: bool,
+    binary_validation: bool
+) -> Tuple[BytesIO, Optional[str], Optional[str]]:
     """
     A private function to validate that a bytes object is binary and detect mime and extension.
-    Will return a BytesIO instance along with the detected mime and extension.
+    Returns a tuple containing a BytesIO instance along with the detected mime type and file extension.
     """
     # Ensure that file object passed is in binary form
-    is_binary = charset_normalizer.is_binary(content)
-    encoding = charset_normalizer.from_bytes(content).best()
-    if not is_binary:
-        raise InvalidUUEncodingError(
-            "the file included is not a binary file, must be a binary file"
-        )
+    if binary_validation:
+        is_binary = charset_normalizer.is_binary(content)
+        if not is_binary:
+            raise InvalidUUEncodingError(
+                "the file included is not a binary file, must be a binary file"
+            )
     
     # Ensure that binary data does not have a character encoding
-    if encoding is not None:
-        raise InvalidUUEncodingError(
-            "binary file cannot have a character encoding"
-        )
+    if encoding_validation:
+        encoding = charset_normalizer.from_bytes(content).best()
+        if encoding is not None:
+            raise InvalidUUEncodingError(
+                "binary file cannot have a character encoding"
+            )
 
     # Detect mime type and file extension from binary
     file_mime_type_from_detection: Optional[str] = filetype.guess_mime(content)
@@ -88,7 +98,9 @@ def encode(
     file_object: Union[str, PathLike, bytes, bytearray],
     filename: str,
     octal_permission: Optional[Union[str, int]] = None,
-    extension: Optional[str] = None
+    extension: Optional[str] = None,
+    encoding_validation: bool = True,
+    binary_validation: bool = True
 ) -> UUEncodedFile:
     """
     Encode binary data into a uuencoded format.
@@ -109,6 +121,8 @@ def encode(
         filename (str): The name of the file being encoded.
         octal_permission (str | int | None): An octal permission as a string or integer.
         extension (str | None): An extension for the file being encoded.
+        encoding_validation (bool): Boolean indicating whether to run encoding validation.
+        binary_validation (bool): Boolean indicating whether to run binary validation.
 
     Returns:
         UUEncodedFile: A UUEncodedFile instance providing the encoded data along with
@@ -121,7 +135,9 @@ def encode(
     # Load file and collection objects
     binary_data = bytearray()
     binary_buffer, file_mime_type_from_detection, file_extension_from_detection  = _encode_from_charset_normalizer(
-        content=load_file_object(file_object=file_object)
+        content=load_file_object(file_object=file_object),
+        encoding_validation=encoding_validation,
+        binary_validation=binary_validation
     )
 
     # If no file extension was provided and there was not a successful detection

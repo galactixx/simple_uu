@@ -104,8 +104,6 @@ class UUDecodedFile(BaseUUFile):
 
         # Add filename to compiled path
         path /= self.full_filename
-        
-        # Write bytes to specified path
         path.write_bytes(self.uu_bytes)
 
 
@@ -147,9 +145,14 @@ class UUEncodedFile(BaseUUFile):
         )
         return dedent(text=class_repr)
     
+    @property
+    def output_filename(self) -> str:
+        """Uuencoded output filename."""
+        return self.filename + '.txt'
+
     def write_file(self, path: Union[str, Path]) -> None:
         """
-        Write the uuencoded bytes to a specified path.
+        Write the uuencoded bytes to a specified path. File extension will be txt.
 
         Args:
             path (str | Path): A path to an existing directory as a string or Path object.
@@ -161,7 +164,5 @@ class UUEncodedFile(BaseUUFile):
             raise NotADirectoryError("not a valid path for writing file")
 
         # Add filename to compiled path
-        path /= self.filename + '.txt'
-        
-        # Write bytes to specified path
+        path /= self.output_filename
         path.write_bytes(self.uu_bytes)

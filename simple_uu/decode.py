@@ -30,33 +30,38 @@ logger = set_up_logger(__name__)
 # Maximum line length, including the length character
 _MAX_LINE_LENGTH = 61
 
-def _decode_from_charset_normalizer(content: bytes) -> BytesIO:
+def _decode_from_charset_normalizer(content: bytes, encoding_validation: bool) -> BytesIO:
     """
     A private function to validate that a bytes object has an ascii encoding.
-    Will return a BytesIO instance.
+    Returns a BytesIO instance.
     """
-    uu_encoded_content = charset_normalizer.from_bytes(content)
-    encoding = uu_encoded_content.best()
+    if encoding_validation:
+        uu_encoded_content = charset_normalizer.from_bytes(content)
+        encoding = uu_encoded_content.best()
 
-    # charset_normalizer can classify uuencoded characters as utf_8, so
-    # Check for both ascii and utf_8 encoding output
-    if encoding is None or (
-        encoding is not None and encoding.encoding not in {'ascii', 'utf_8'}
-    ):
-        raise InvalidUUDecodingError(
-            "invalid character encoding, file must have an ascii character encoding"
-        )
+        # charset_normalizer can classify uuencoded characters as utf_8, so
+        # Check for both ascii and utf_8 encoding output
+        if encoding is None or (
+            encoding is not None and encoding.encoding not in {'ascii', 'utf_8'}
+        ):
+            raise InvalidUUDecodingError(
+                "invalid character encoding, file must have an ascii character encoding"
+            )
     
     return BytesIO(initial_bytes=encoding.raw)
 
 
-def decode(file_object: Union[str, PathLike, bytes, bytearray]) -> UUDecodedFile:
+def decode(
+    file_object: Union[str, PathLike, bytes, bytearray],
+    encoding_validation: bool = True
+) -> UUDecodedFile:
     """
     Decode a file from a uuencoded format.
     
     Args:
         file_object (str | PathLike | bytes | bytearray): A file object is either a path
             to a file, bytes or bytearray object. All must contain uuencoded data.
+        encoding_validation (bool): Boolean indicating whether to run encoding validation.
 
     Returns:
         UUDecodedFile: A UUDecodedFile instance providing the decoded data along with
@@ -67,7 +72,8 @@ def decode(file_object: Union[str, PathLike, bytes, bytearray]) -> UUDecodedFile
     
     # Load file object into a BytesIO instance
     uu_encoded_buffer: BytesIO = _decode_from_charset_normalizer(
-        content=load_file_object(file_object=file_object)
+        content=load_file_object(file_object=file_object),
+        encoding_validation=encoding_validation
     )
     buffer_length = len(uu_encoded_buffer.getvalue())
 
@@ -99,9 +105,9 @@ def decode(file_object: Union[str, PathLike, bytes, bytearray]) -> UUDecodedFile
                 "no permissions mode was detected in header, mode has automatically been generated"
             )
         else:
-            permissions_mode: str = from_octal_to_permissions_code(
-                octal=permissions_mode_uu.decode('ascii')
-            )
+            permissions_mode_uu = permissions_mode_uu.decode('ascii')
+        
+        permissions_mode: str = from_octal_to_permissions_code(octal=permissions_mode_uu)
     except InvalidOctalError:
         raise InvalidPermissionsMode()
     
@@ -138,10 +144,7 @@ def decode(file_object: Union[str, PathLike, bytes, bytearray]) -> UUDecodedFile
                         )
                     else:
                         raise Error(exc_info)
-                else:
-                    binary_data.extend(decoded_output)
-            else:
-                binary_data.extend(decoded_output)
+            binary_data.extend(decoded_output)
 
     # Raise error if there was nothing was decoded
     if not binary_data:
