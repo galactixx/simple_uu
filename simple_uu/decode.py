@@ -1,29 +1,20 @@
 import binascii
 from binascii import Error
-from typing import Optional, Union
-from os import PathLike
 from io import BytesIO
+from os import PathLike
+from typing import Optional, Union
 
 import charset_normalizer
 import filetype
-from unix_perms import (
-    from_octal_to_permissions_mode,
-    InvalidOctalError
-)
+from unix_perms import InvalidOctalError, from_octal_to_permissions_mode
 
+from simple_uu.exceptions import (FileExtensionNotFoundError,
+                                  InvalidPermissionsMode,
+                                  InvalidUUDecodingError)
 from simple_uu.logger import set_up_logger
 from simple_uu.types import UUDecodedFile
-from simple_uu.utils import (
-    construct_filename,
-    decompose_filename,
-    load_file_object,
-    parse_header
-)
-from simple_uu.exceptions import (
-    FileExtensionNotFoundError,
-    InvalidPermissionsMode,
-    InvalidUUDecodingError
-)
+from simple_uu.utils import (construct_filename, decompose_filename,
+                             load_file_object, parse_header)
 
 logger = set_up_logger(__name__)
 
@@ -47,7 +38,7 @@ def _decode_from_charset_normalizer(content: bytes, encoding_validation: bool) -
             raise InvalidUUDecodingError(
                 "invalid character encoding, file must have an ascii character encoding"
             )
-    
+
     return BytesIO(initial_bytes=content)
 
 
@@ -57,7 +48,7 @@ def decode(
 ) -> UUDecodedFile:
     """
     Decode a file from a uuencoded format.
-    
+
     Args:
         file_object (str | PathLike | bytes | bytearray): A file object is either a path
             to a file, bytes or bytearray object. All must contain uuencoded data.
@@ -68,7 +59,7 @@ def decode(
             a number of attributes, properties, and methods.
     """
     binary_data = bytearray()
-    
+
     # Load file object into a BytesIO instance
     uu_encoded_buffer: BytesIO = _decode_from_charset_normalizer(
         content=load_file_object(file_object=file_object),
@@ -89,7 +80,7 @@ def decode(
     # Parse header to extract all three key items
     # (begin clause, permissions mode, and file name)
     begin, permissions_mode_uu, filename_uu = parse_header(header=header_line)
-    
+
     # The header must start with 'begin' in order to move on with decoding
     if begin != b'begin':
         raise InvalidUUDecodingError("missing 'begin' section of header at start of file")
@@ -105,16 +96,16 @@ def decode(
             )
         else:
             permissions_mode_uu = permissions_mode_uu.decode('ascii')
-        
+
         permissions_mode: str = from_octal_to_permissions_mode(octal=permissions_mode_uu)
     except InvalidOctalError:
         raise InvalidPermissionsMode()
-    
+
     # Iterate through each line of buffer and decode using binascii
     for line in uu_encoded_buffer:
         # Perform removal of new line and carriage return characters from the end of each line
         uuencoded_line: bytes = line.rstrip(b'\n\r')
-        
+
         if uuencoded_line and not uuencoded_line.startswith(b'end'):
             line_length: int = len(uuencoded_line)
 
@@ -123,7 +114,7 @@ def decode(
                 raise InvalidUUDecodingError(
                     f"length of {line_length} is larger than the maximum allowed for a line of uuencoded data"
                 )
-            
+
             # Run decoding from binascii
             try:
                 decoded_output: bytes = binascii.a2b_uu(uuencoded_line)
@@ -177,5 +168,5 @@ def decode(
         file_extension=file_extension
     )
     decoded_file.uu_bytes = binary_data
-       
+
     return decoded_file

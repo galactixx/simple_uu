@@ -1,24 +1,19 @@
 import binascii
-from typing import Optional, Tuple, Union
-from os import PathLike
 from io import BytesIO
 from mimetypes import types_map
+from os import PathLike
+from typing import Optional, Tuple, Union
 
 import charset_normalizer
 import filetype
-from unix_perms import (
-    from_octal_to_permissions_mode,
-    InvalidOctalError
-)
+from unix_perms import InvalidOctalError, from_octal_to_permissions_mode
 
-from simple_uu.utils import load_file_object
-from simple_uu.types import UUEncodedFile
+from simple_uu.exceptions import (FileExtensionNotDetected,
+                                  InvalidPermissionsMode,
+                                  InvalidUUEncodingError)
 from simple_uu.logger import set_up_logger
-from simple_uu.exceptions import (
-    FileExtensionNotDetected,
-    InvalidPermissionsMode,
-    InvalidUUEncodingError
-)
+from simple_uu.types import UUEncodedFile
+from simple_uu.utils import load_file_object
 
 logger = set_up_logger(__name__)
 
@@ -44,7 +39,7 @@ def _permissions_mode(octal_permission: Optional[Union[str, int]]) -> str:
         raise InvalidPermissionsMode()
     else:
         return permissions_mode
-    
+
 
 def _file_extension(extension: Optional[str]) -> Optional[str]:
     """
@@ -56,7 +51,7 @@ def _file_extension(extension: Optional[str]) -> Optional[str]:
 
         if local_extension not in types_map:
             raise ValueError('invalid file extension provided')
-        
+
     return extension
 
 
@@ -76,7 +71,7 @@ def _encode_from_charset_normalizer(
             raise InvalidUUEncodingError(
                 "the file included is not a binary file, must be a binary file"
             )
-    
+
     # Ensure that binary data does not have a character encoding
     if encoding_validation:
         encoding = charset_normalizer.from_bytes(content).best()
