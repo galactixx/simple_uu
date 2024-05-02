@@ -7,7 +7,7 @@ from mimetypes import types_map
 import charset_normalizer
 import filetype
 from unix_perms import (
-    from_octal_to_permissions_code,
+    from_octal_to_permissions_mode,
     InvalidOctalError
 )
 
@@ -37,7 +37,7 @@ def _permissions_mode(octal_permission: Optional[Union[str, int]]) -> str:
         )
 
     try:
-        permissions_mode: str = from_octal_to_permissions_code(
+        permissions_mode: str = from_octal_to_permissions_mode(
             octal=octal_permission
         )
     except InvalidOctalError:
@@ -161,6 +161,7 @@ def encode(
     uu_header: bytes = f'begin {permissions_mode} {full_filename}\n'.encode('ascii')
     binary_data.extend(uu_header)
 
+    # Original length of buffer
     buffer_length = len(binary_buffer.getvalue())
 
     # Iterate through every 45 bits of the binary data and encode with binascii

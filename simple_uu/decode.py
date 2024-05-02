@@ -7,7 +7,7 @@ from io import BytesIO
 import charset_normalizer
 import filetype
 from unix_perms import (
-    from_octal_to_permissions_code,
+    from_octal_to_permissions_mode,
     InvalidOctalError
 )
 
@@ -106,7 +106,7 @@ def decode(
         else:
             permissions_mode_uu = permissions_mode_uu.decode('ascii')
         
-        permissions_mode: str = from_octal_to_permissions_code(octal=permissions_mode_uu)
+        permissions_mode: str = from_octal_to_permissions_mode(octal=permissions_mode_uu)
     except InvalidOctalError:
         raise InvalidPermissionsMode()
     

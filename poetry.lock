@@ -380,13 +380,13 @@ files = [
 
 [[package]]
 name = "unix-perms"
-version = "0.1.0"
-description = "Manage and interpret Linux file permissions with a Python package that provides intuitive tools for creating, validating, and describing permission codes."
+version = "0.2.0"
+description = "Manage and interpret Unix file permissions with a Python package that provides intuitive tools for creating, validating, and describing permission modes."
 optional = false
 python-versions = "<4.0,>=3.12"
 files = [
-    {file = "unix_perms-0.1.0-py3-none-any.whl", hash = "sha256:ce5120c9b3ff48e453716220bf3b19ea237424b3ad8218a293035239b3b47d16"},
-    {file = "unix_perms-0.1.0.tar.gz", hash = "sha256:b2702bdba5e03fe67ac581df33977c84d8ab7086b39452a9131cfa7939a56f6a"},
+    {file = "unix_perms-0.2.0-py3-none-any.whl", hash = "sha256:f12b5ec878910467f813140ba0fd5d7eb113df80ab9ac0e0920a7fac7c99fe8c"},
+    {file = "unix_perms-0.2.0.tar.gz", hash = "sha256:811c48ca98c188db539050c22e3d88d7d6f62ad471a2554db8f3ce5f43d7a58c"},
 ]
 
 [package.dependencies]
@@ -395,4 +395,4 @@ pydantic = ">=2.7.1,<3.0.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "934478de1939270c97a3b31592c2f146d787e6160fcc1052f47ca08ad067bd91"
+content-hash = "b5939c95ec37b99272ca9ba5571c541963e920758a86b2f4e05b976a2b127f85"
