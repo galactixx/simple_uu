@@ -1,27 +1,26 @@
-from typing import Optional, Tuple, Union
 import os
-from os import PathLike
 import uuid
+from pathlib import Path
+from typing import Optional, Tuple, Union
 
 from simple_uu.logger import set_up_logger
 
 logger = set_up_logger(__name__)
 
-def load_file_object(file_object: Union[str, PathLike, bytes, bytearray]) -> bytes:
+def load_file_object(file_object: Union[str, Path, bytes, bytearray]) -> bytes:
     """
     Loads a file object and return a bytes instance.
 
     Args:
-        file_object (str | PathLike | bytes | bytearray): A file object is either a path
+        file_object (str | Path | bytes | bytearray): A file object is either a path
             to a file, bytes or bytearray object. All must contain uuencoded data.
 
     Returns:
         bytes: A bytes instance.
     """
-    if not isinstance(file_object, (str, PathLike, bytes, bytearray)):
-        raise TypeError(
-            f"{type(file_object)} is an invalid type, must be one of (str, PathLike, bytes, bytearray)"
-        )
+    if not isinstance(file_object, (str, Path, bytes, bytearray)):
+        message_core = 'Expected a string, Path, bytes, or bytearray object'
+        raise TypeError(f"{message_core}, but got {type(file_object).__name__}")
 
     if isinstance(file_object, bytes):
          uu_encoded_bytes: bytes = file_object
@@ -32,7 +31,7 @@ def load_file_object(file_object: Union[str, PathLike, bytes, bytearray]) -> byt
             with open(file_object, 'rb') as uu_encoded_file:
                 uu_encoded_bytes: bytes = uu_encoded_file.read()
         else:
-            raise FileNotFoundError("file path is not valid")
+            raise FileNotFoundError("File path is not valid")
 
     return uu_encoded_bytes
 
@@ -67,7 +66,7 @@ def decompose_filename(
     """
     Extracts both the filename and file extension from the filename included in the
     header of the uu file.
-    
+
     Args:
         filename_from_uu (bytes | None): Filename extracted from uu header.
 
@@ -87,7 +86,7 @@ def decompose_filename(
     else:
         file_extension = file_extension.lstrip('.')
         return filename, file_extension
-    
+
 
 def parse_header(header: bytes) -> Tuple[
     Optional[bytes], Optional[bytes], Optional[bytes]
@@ -99,7 +98,7 @@ def parse_header(header: bytes) -> Tuple[
     it is assumed that it is the begin clause. If there are two items, the begin clause and permissions
     mode are priortized. With three items we return all. Finally, if there are more than three,
     all from three onwards are assumed to be part of the filename.
-    
+
     Args:
         header (bytes): Header line from uuencoded data.
 

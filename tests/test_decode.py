@@ -1,10 +1,7 @@
 import pytest
-from simple_uu import (
-    decode,
-    FileExtensionNotFoundError,
-    InvalidPermissionsMode,
-    InvalidUUDecodingError
-)
+
+from simple_uu import (FileExtensionNotFoundError, InvalidPermissionsMode,
+                       InvalidUUDecodingError, decode)
 
 
 def test_decode_error_character_encoding() -> None:
@@ -17,7 +14,7 @@ def test_decode_error_character_encoding() -> None:
     with pytest.raises(InvalidUUDecodingError) as exc_info:
         _ = decode(file_object=example_file_object)
     assert str(exc_info.value) == (
-        'invalid character encoding, file must have an ascii character encoding'
+        'Invalid character encoding, file must have an ascii character encoding'
     )
 
 
@@ -29,14 +26,14 @@ def test_test_decode_error_no_content() -> None:
     with pytest.raises(InvalidUUDecodingError) as exc_info:
         _ = decode(file_object=example_file_object)
     assert str(exc_info.value) == (
-        'apart from header there is no content in file, nothing was decoded'
+        'Apart from header there is no content in file, nothing was decoded'
     )
 
     example_file_object = bytearray(b'')
     with pytest.raises(InvalidUUDecodingError) as exc_info:
         _ = decode(file_object=example_file_object)
     assert str(exc_info.value) == (
-        'there is no content in file, nothing was decoded'
+        'There is no content in file, nothing was decoded'
     )
 
 
@@ -48,7 +45,7 @@ def test_decode_error_malformed_header() -> None:
     with pytest.raises(InvalidUUDecodingError) as exc_info:
         _ = decode(file_object=example_file_object)
     assert str(exc_info.value) == (
-        "missing 'begin' section of header at start of file"
+        "Missing 'begin' section of header at start of file"
     )
 
 
@@ -61,14 +58,14 @@ def test_decode_error_permissions_mode() -> None:
     )
     with pytest.raises(InvalidPermissionsMode) as exc_info:
         _ = decode(file_object=example_file_object)
-    assert str(exc_info.value) == 'permissions mode included is invalid'
+    assert str(exc_info.value) == 'Permissions mode included is invalid'
 
     example_file_object = bytearray(
         b'begin 1111 example.jpg\nM_]C_X  02D9)1@ ! 0$ 8 !@  #_X0)F17AI9@  34T *@    @  P$2\nend'
     )
     with pytest.raises(InvalidPermissionsMode) as exc_info:
         _ = decode(file_object=example_file_object)
-    assert str(exc_info.value) == 'permissions mode included is invalid'
+    assert str(exc_info.value) == 'Permissions mode included is invalid'
 
 
 def test_decode_invalid_line_length() -> None:
@@ -81,7 +78,7 @@ def test_decode_invalid_line_length() -> None:
     with pytest.raises(InvalidUUDecodingError) as exc_info:
         _ = decode(file_object=example_file_object)
     assert str(exc_info.value) == (
-        'length of 63 is larger than the maximum allowed for a line of uuencoded data'
+        'Length of 63 is larger than the maximum allowed for a line of uuencoded data'
     )
 
 
@@ -95,7 +92,7 @@ def test_decode_illegal_character() -> None:
     with pytest.raises(InvalidUUDecodingError) as exc_info:
         _ = decode(file_object=example_file_object)
     assert str(exc_info.value) == (
-        'invalid ascii character, characters should have ascii codes ranging from 32 to 96'
+        'Invalid ascii character, characters should have ascii codes ranging from 32 to 96'
     )
 
 
@@ -109,7 +106,7 @@ def test_decode_error_file_extension() -> None:
     with pytest.raises(FileExtensionNotFoundError) as exc_info:
         _ = decode(file_object=example_file_object)
     assert str(exc_info.value) == (
-        'the file extension was not found in header, and could not be detected from the signature'
+        'File extension was not found in header and could not be detected from signature'
     )
 
 

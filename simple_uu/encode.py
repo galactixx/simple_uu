@@ -1,7 +1,7 @@
 import binascii
 from io import BytesIO
 from mimetypes import types_map
-from os import PathLike
+from pathlib import Path
 from typing import Optional, Tuple, Union
 
 import charset_normalizer
@@ -36,7 +36,7 @@ def _permissions_mode(octal_permission: Optional[Union[str, int]]) -> str:
             octal=octal_permission
         )
     except InvalidOctalError:
-        raise InvalidPermissionsMode()
+        raise InvalidPermissionsMode('Permissions mode included is invalid')
     else:
         return permissions_mode
 
@@ -50,7 +50,7 @@ def _file_extension(extension: Optional[str]) -> Optional[str]:
             local_extension = '.' + extension
 
         if local_extension not in types_map:
-            raise ValueError('invalid file extension provided')
+            raise ValueError('Invalid file extension provided')
 
     return extension
 
@@ -69,7 +69,7 @@ def _encode_from_charset_normalizer(
         is_binary = charset_normalizer.is_binary(content)
         if not is_binary:
             raise InvalidUUEncodingError(
-                "the file included is not a binary file, must be a binary file"
+                "The file included is not a binary file, must be a binary file"
             )
 
     # Ensure that binary data does not have a character encoding
@@ -77,7 +77,7 @@ def _encode_from_charset_normalizer(
         encoding = charset_normalizer.from_bytes(content).best()
         if encoding is not None:
             raise InvalidUUEncodingError(
-                "binary file cannot have a character encoding"
+                "Binary file cannot have a character encoding"
             )
 
     # Detect mime type and file extension from binary
@@ -90,7 +90,7 @@ def _encode_from_charset_normalizer(
 
 
 def encode(
-    file_object: Union[str, PathLike, bytes, bytearray],
+    file_object: Union[str, Path, bytes, bytearray],
     filename: str,
     octal_permission: Optional[Union[str, int]] = None,
     extension: Optional[str] = None,
@@ -111,7 +111,7 @@ def encode(
     not provided the it will be detected based off of the binary data.
 
     Args:
-        file_object (str | PathLike | bytes | bytearray): A file object is either a path
+        file_object (str | Path | bytes | bytearray): A file object is either a path
             to a file, bytes object or bytearray object. All must contain binary data.
         filename (str): The name of the file being encoded.
         octal_permission (str | int | None): An octal permission as a string or integer.
@@ -138,11 +138,13 @@ def encode(
     # If no file extension was provided and there was not a successful detection
     # raise a FileExtensionNotDetected error
     if file_extension is None and file_extension_from_detection is None:
-        raise FileExtensionNotDetected()
+        raise FileExtensionNotDetected(
+            'File extension was not provided and could not be detected from signature'
+        )
     else:
         if file_extension != file_extension_from_detection:
             logger.warning(
-                "the file extension generated from file type detection does not match the extension provided"
+                "The file extension generated from file type detection does not match extension provided"
             )
 
     # By default, use extension from detection over that provided by user

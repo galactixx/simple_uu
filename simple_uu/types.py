@@ -1,7 +1,8 @@
-from pathlib import Path
-from typing import Union
-from textwrap import dedent
 from abc import ABC, abstractmethod
+from pathlib import Path
+from textwrap import dedent
+from typing import Union
+
 
 class BaseUUFile(ABC):
     """
@@ -50,7 +51,7 @@ class UUDecodedFile(BaseUUFile):
     """
     Structure for storing and manipulating a uudecoded object. Also includes a variety
     of properties and methods.
-    
+
     Args:
         filename (str): The filename of the uudecoded file.
         permissions_mode (str): The Unix permissions mode of the uudecoded file.
@@ -83,7 +84,7 @@ class UUDecodedFile(BaseUUFile):
             f'file_extension={self.file_extension})'
         )
         return dedent(text=class_repr)
-    
+
     def write_file(self, path: Union[str, Path]) -> None:
         """
         Write the decoded bytes to a specified path.
@@ -93,9 +94,9 @@ class UUDecodedFile(BaseUUFile):
         """
         if isinstance(path, str):
             path = Path(path)
-      
+
         if not path.is_dir():
-            raise NotADirectoryError("not a valid path for writing file")
+            raise NotADirectoryError("Not a valid path for writing file")
 
         # Add filename to compiled path
         path /= self.full_filename
@@ -106,7 +107,7 @@ class UUEncodedFile(BaseUUFile):
     """
     Structure for storing and manipulating a uuencoded object. Also includes a variety
     of properties and methods.
-    
+
     Args:
         filename (str): The filename of the uudecoded/uuencoded file.
         permissions_mode (str): The Unix permissions mode of the uudecoded/uuencoded file.
@@ -139,7 +140,7 @@ class UUEncodedFile(BaseUUFile):
             f'file_extension={self.file_extension})'
         )
         return dedent(text=class_repr)
-    
+
     @property
     def output_filename(self) -> str:
         """Uuencoded output filename."""
@@ -154,9 +155,9 @@ class UUEncodedFile(BaseUUFile):
         """
         if isinstance(path, str):
             path = Path(path)
-      
+
         if not path.is_dir():
-            raise NotADirectoryError("not a valid path for writing file")
+            raise NotADirectoryError("Not a valid path for writing file")
 
         # Add filename to compiled path
         path /= self.output_filename

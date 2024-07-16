@@ -1,7 +1,7 @@
 import binascii
 from binascii import Error
 from io import BytesIO
-from os import PathLike
+from pathlib import Path
 from typing import Optional, Union
 
 import charset_normalizer
@@ -36,21 +36,21 @@ def _decode_from_charset_normalizer(content: bytes, encoding_validation: bool) -
             encoding is not None and encoding.encoding not in {'ascii', 'utf_8'}
         ):
             raise InvalidUUDecodingError(
-                "invalid character encoding, file must have an ascii character encoding"
+                "Invalid character encoding, file must have an ascii character encoding"
             )
 
     return BytesIO(initial_bytes=content)
 
 
 def decode(
-    file_object: Union[str, PathLike, bytes, bytearray],
+    file_object: Union[str, Path, bytes, bytearray],
     encoding_validation: bool = True
 ) -> UUDecodedFile:
     """
     Decode a file from a uuencoded format.
 
     Args:
-        file_object (str | PathLike | bytes | bytearray): A file object is either a path
+        file_object (str | Path | bytes | bytearray): A file object is either a path
             to a file, bytes or bytearray object. All must contain uuencoded data.
         encoding_validation (bool): Boolean indicating whether to run encoding validation.
 
@@ -75,7 +75,7 @@ def decode(
             break
 
     if uu_encoded_buffer.tell() == buffer_length:
-        raise InvalidUUDecodingError("there is no content in file, nothing was decoded")
+        raise InvalidUUDecodingError("There is no content in file, nothing was decoded")
 
     # Parse header to extract all three key items
     # (begin clause, permissions mode, and file name)
@@ -83,7 +83,7 @@ def decode(
 
     # The header must start with 'begin' in order to move on with decoding
     if begin != b'begin':
-        raise InvalidUUDecodingError("missing 'begin' section of header at start of file")
+        raise InvalidUUDecodingError("Missing 'begin' section of header at start of file")
 
     # Confirm the permissions mode included is valid
     try:
@@ -99,7 +99,7 @@ def decode(
 
         permissions_mode: str = from_octal_to_permissions_mode(octal=permissions_mode_uu)
     except InvalidOctalError:
-        raise InvalidPermissionsMode()
+        raise InvalidPermissionsMode('Permissions mode included is invalid')
 
     # Iterate through each line of buffer and decode using binascii
     for line in uu_encoded_buffer:
@@ -112,7 +112,7 @@ def decode(
             # Raise an error if the length of a line is larger than the maximum allowed
             if line_length > _MAX_LINE_LENGTH:
                 raise InvalidUUDecodingError(
-                    f"length of {line_length} is larger than the maximum allowed for a line of uuencoded data"
+                    f"Length of {line_length} is larger than the maximum allowed for a line of uuencoded data"
                 )
 
             # Run decoding from binascii
@@ -126,7 +126,7 @@ def decode(
                 except Error as exc_info:
                     if str(exc_info) == 'Illegal char':
                         raise InvalidUUDecodingError(
-                            "invalid ascii character, characters should have ascii codes ranging from 32 to 96"
+                            "Invalid ascii character, characters should have ascii codes ranging from 32 to 96"
                         )
                     else:
                         raise Error(exc_info)
@@ -135,7 +135,7 @@ def decode(
     # Raise error if there was nothing was decoded
     if not binary_data:
         raise InvalidUUDecodingError(
-            "apart from header there is no content in file, nothing was decoded"
+            "Apart from header there is no content in file, nothing was decoded"
         )
 
     # Extract name and extension from filename
@@ -156,7 +156,9 @@ def decode(
         file_extension_from_detection if file_extension_from_detection is not None else file_extension_from_uu
     )
     if file_extension is None:
-        raise FileExtensionNotFoundError()
+        raise FileExtensionNotFoundError(
+            'File extension was not found in header and could not be detected from signature'
+        )
 
     filename: str = construct_filename(filename_from_uu=filename_from_uu)
 

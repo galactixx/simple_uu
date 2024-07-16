@@ -1,10 +1,8 @@
 import pytest
-from simple_uu import (
-    encode,
-    FileExtensionNotDetected,
-    InvalidPermissionsMode,
-    InvalidUUEncodingError
-)
+
+from simple_uu import (FileExtensionNotDetected, InvalidPermissionsMode,
+                       InvalidUUEncodingError, encode)
+
 
 def _normalize_newlines(data: bytes) -> bytes:
     return data.replace(b'\r\n', b'\n')
@@ -19,13 +17,13 @@ def test_encode_error_permissions_mode() -> None:
         _ = encode(
             file_object=example_file_object, filename='example', octal_permission='999'
         )
-    assert str(exc_info.value) == 'permissions mode included is invalid'
+    assert str(exc_info.value) == 'Permissions mode included is invalid'
 
     with pytest.raises(InvalidPermissionsMode) as exc_info:
         _ = encode(
             file_object=example_file_object, filename='example', octal_permission='7777'
         )
-    assert str(exc_info.value) == 'permissions mode included is invalid'
+    assert str(exc_info.value) == 'Permissions mode included is invalid'
 
 
 def test_encode_error_file_extension() -> None:
@@ -37,9 +35,9 @@ def test_encode_error_file_extension() -> None:
         _ = encode(
             file_object=example_file_object, filename='example', extension='fake'
         )
-    assert str(exc_info.value) == 'invalid file extension provided'
+    assert str(exc_info.value) == 'Invalid file extension provided'
 
-    
+
 def test_encode_error_is_binary() -> None:
     """
     Test error handling for a file that is not binary or has a character encoding.
@@ -54,7 +52,7 @@ def test_encode_error_is_binary() -> None:
         _ = encode(
             file_object=example_file_object, filename='example', extension='jpg'
         )
-    assert str(exc_info.value) == 'binary file cannot have a character encoding'
+    assert str(exc_info.value) == 'Binary file cannot have a character encoding'
 
     example_file_object = bytearray(
         b'this is clearly not binary data, should throw an error'
@@ -66,7 +64,7 @@ def test_encode_error_is_binary() -> None:
             file_object=example_file_object, filename='example', extension='jpg'
         )
     assert str(exc_info.value) == (
-        'the file included is not a binary file, must be a binary file'
+        'The file included is not a binary file, must be a binary file'
     )
 
 
@@ -82,7 +80,7 @@ def test_encode_error_file_extension() -> None:
             file_object=example_file_object, filename='example'
         )
     assert str(exc_info.value) == (
-        'the file extension was not provided, and could not be detected from the signature'
+        'File extension was not provided and could not be detected from signature'
     )
 
 
@@ -215,7 +213,7 @@ def test_encode_complete() -> None:
     )
 
     with open('./tests/examples/encoded/example_3.txt', 'rb') as example_file:
-        example_3_encoded_test = _normalize_newlines(data=example_file.read())    
+        example_3_encoded_test = _normalize_newlines(data=example_file.read())
 
     assert example_3_encode.file_extension == 'docx'
     assert example_3_encode.file_mime_type == (

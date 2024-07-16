@@ -13,7 +13,7 @@ keywords = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.10"
 charset-normalizer = "^3.3.2"
 filetype = "^1.2.0"
 unix-perms = "^0.2.0"
