@@ -22,14 +22,16 @@ def load_file_object(file_object: Union[str, Path, bytes, bytearray]) -> bytes:
         message_core = 'Expected a string, Path, bytes, or bytearray object'
         raise TypeError(f"{message_core}, but got {type(file_object).__name__}")
 
+    uu_encoded_bytes: bytes
+
     if isinstance(file_object, bytes):
-         uu_encoded_bytes: bytes = file_object
+         uu_encoded_bytes = file_object
     elif isinstance(file_object, bytearray):
-         uu_encoded_bytes: bytes = bytes(file_object)
+         uu_encoded_bytes = bytes(file_object)
     else:
         if os.path.isfile(file_object):
             with open(file_object, 'rb') as uu_encoded_file:
-                uu_encoded_bytes: bytes = uu_encoded_file.read()
+                uu_encoded_bytes = uu_encoded_file.read()
         else:
             raise FileNotFoundError("File path is not valid")
 
@@ -53,7 +55,7 @@ def construct_filename(filename_from_uu: Optional[str]) -> str:
         file_name_generated = f'simple-uu-decode-{uu_8_file_id}'
 
         logger.info(
-            f"filename did not appear in the uu header, auto-generating filename {file_name_generated}"
+            f"Filename did not appear in the uu header, auto-generating filename {file_name_generated}"
         )
         return file_name_generated
     else:

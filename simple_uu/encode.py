@@ -2,10 +2,10 @@ import binascii
 from io import BytesIO
 from mimetypes import types_map
 from pathlib import Path
-from typing import Optional, Tuple, Union
+from typing import cast, Optional, Tuple, Union
 
 import charset_normalizer
-import filetype
+import filetype # type: ignore[import-untyped]
 from unix_perms import InvalidOctalError, from_octal_to_permissions_mode
 
 from simple_uu.exceptions import (FileExtensionNotDetected,
@@ -28,7 +28,7 @@ def _permissions_mode(octal_permission: Optional[Union[str, int]]) -> str:
         octal_permission = 0o644
 
         logger.info(
-            "no permissions mode was given, mode has automatically been generated"
+            "No permissions mode was given, mode has automatically been generated"
         )
 
     try:
@@ -149,12 +149,14 @@ def encode(
 
     # By default, use extension from detection over that provided by user
     # If file extension cannot be detected, then the extension provided  is used
-    file_extension: Optional[str] = (
-        file_extension_from_detection if file_extension_from_detection is not None else file_extension
+    file_extension_final = cast(
+        str,
+        file_extension_from_detection if file_extension_from_detection is not None
+        else file_extension
     )
 
     # Generate header for uuencoded file and add to bytearray
-    full_filename: str = filename + '.' + file_extension
+    full_filename: str = filename + '.' + file_extension_final
     uu_header: bytes = f'begin {permissions_mode} {full_filename}\n'.encode('ascii')
     binary_data.extend(uu_header)
 
@@ -175,7 +177,7 @@ def encode(
         filename=filename,
         permissions_mode=permissions_mode,
         file_mime_type=file_mime_type_from_detection,
-        file_extension=file_extension
+        file_extension=file_extension_final
     )
     encoded_file.uu_bytes = binary_data
 

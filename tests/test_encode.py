@@ -68,7 +68,7 @@ def test_encode_error_is_binary() -> None:
     )
 
 
-def test_encode_error_file_extension() -> None:
+def test_encode_error_file_extension_missing() -> None:
     """
     Test error handling for an unknown file extension/type.
     """

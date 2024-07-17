@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 from textwrap import dedent
-from typing import Union
+from typing import Optional, Union
 
 
 class BaseUUFile(ABC):
@@ -11,14 +11,14 @@ class BaseUUFile(ABC):
     Args:
         filename (str): The filename of the uudecoded/uuencoded file.
         permissions_mode (str): The Unix permissions mode of the uudecoded/uuencoded file.
-        file_mime_type (str): The mime type mode of the uudecoded/uuencoded file.
+        file_mime_type (str | None): The mime type mode of the uudecoded/uuencoded file.
         file_extension (str): The file extension of the uudecoded/uuencoded file.
     """
     def __init__(
         self,
         filename: str,
         permissions_mode: str,
-        file_mime_type: str,
+        file_mime_type: Optional[str],
         file_extension: str
     ):
         self.filename = filename
@@ -55,14 +55,14 @@ class UUDecodedFile(BaseUUFile):
     Args:
         filename (str): The filename of the uudecoded file.
         permissions_mode (str): The Unix permissions mode of the uudecoded file.
-        file_mime_type (str): The mime type mode of the uudecoded file.
+        file_mime_type (str | None): The mime type mode of the uudecoded file.
         file_extension (str): The file extension of the uudecoded file.
     """
     def __init__(
         self,
         filename: str,
         permissions_mode: str,
-        file_mime_type: str,
+        file_mime_type: Optional[str],
         file_extension: str
     ):
         super().__init__(
@@ -111,14 +111,14 @@ class UUEncodedFile(BaseUUFile):
     Args:
         filename (str): The filename of the uudecoded/uuencoded file.
         permissions_mode (str): The Unix permissions mode of the uudecoded/uuencoded file.
-        file_mime_type (str): The mime type mode of the uudecoded/uuencoded file.
+        file_mime_type (str | None): The mime type mode of the uudecoded/uuencoded file.
         file_extension (str): The file extension of the uudecoded/uuencoded file.
     """
     def __init__(
         self,
         filename: str,
         permissions_mode: str,
-        file_mime_type: str,
+        file_mime_type: Optional[str],
         file_extension: str
     ):
         super().__init__(

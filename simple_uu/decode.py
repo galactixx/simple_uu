@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 import charset_normalizer
-import filetype
+import filetype # type: ignore[import-untyped]
 from unix_perms import InvalidOctalError, from_octal_to_permissions_mode
 
 from simple_uu.exceptions import (FileExtensionNotFoundError,
@@ -88,16 +88,17 @@ def decode(
     # Confirm the permissions mode included is valid
     try:
         # If no permissions was found in header, then set default
+        permissions_mode_uu_parsed: Union[str, int]
         if permissions_mode_uu is None:
-            permissions_mode_uu = 0o644
+            permissions_mode_uu_parsed = 0o644
 
             logger.info(
-                "no permissions mode was detected in header, mode has automatically been generated"
+                "No permissions mode was detected in header, mode has automatically been generated"
             )
         else:
-            permissions_mode_uu = permissions_mode_uu.decode('ascii')
+            permissions_mode_uu_parsed = permissions_mode_uu.decode('ascii')
 
-        permissions_mode: str = from_octal_to_permissions_mode(octal=permissions_mode_uu)
+        permissions_mode: str = from_octal_to_permissions_mode(octal=permissions_mode_uu_parsed)
     except InvalidOctalError:
         raise InvalidPermissionsMode('Permissions mode included is invalid')
 
@@ -116,13 +117,14 @@ def decode(
                 )
 
             # Run decoding from binascii
+            decoded_output: bytes
             try:
-                decoded_output: bytes = binascii.a2b_uu(uuencoded_line)
+                decoded_output = binascii.a2b_uu(uuencoded_line)
             except Error:
                 try:
                     # Taken from uu standard library
                     nbytes: int = (((uuencoded_line[0] - 32) & 63) * 4 + 5) // 3
-                    decoded_output: bytes = binascii.a2b_uu(uuencoded_line[:nbytes])
+                    decoded_output = binascii.a2b_uu(uuencoded_line[:nbytes])
                 except Error as exc_info:
                     if str(exc_info) == 'Illegal char':
                         raise InvalidUUDecodingError(
